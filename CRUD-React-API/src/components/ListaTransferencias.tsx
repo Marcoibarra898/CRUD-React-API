@@ -1,17 +1,20 @@
-import { useState, useEffect } from 'react';
-import { Eye, Edit, Plus, Search, Ban, CheckCheck } from 'lucide-react';
-import { Transferencia } from '../types';
+import { useState, useEffect } from "react";
+import { Eye, Edit, Plus, Search, Ban, CheckCheck } from "lucide-react";
+import { Transferencia } from "../types";
 
 interface ListaTransferenciasProps {
-    onAdd: () => void;
-    onEdit: (id: number) => void;
-  }
+  onAdd: () => void;
+  onEdit: (id: number) => void;
+}
 
-  export default function ListaTransferencias({ onAdd,onEdit }: ListaTransferenciasProps) {
+export default function ListaTransferencias({
+  onAdd,
+  onEdit,
+}: ListaTransferenciasProps) {
   const [transferencias, setTransferencias] = useState<Transferencia[]>([]);
-  const [busqueda, setBusqueda] = useState('');
+  const [busqueda, setBusqueda] = useState("");
   const [cargando, setCargando] = useState(true);
-  const [filtroEstado, setFiltroEstado] = useState('Todos');
+  const [filtroEstado, setFiltroEstado] = useState("Todos");
 
   useEffect(() => {
     // implementar llamado a la api pendiente
@@ -21,29 +24,29 @@ interface ListaTransferenciasProps {
           id: 1,
           cuentaOrigenId: 1,
           cuentaDestinoId: 2,
-          monto: 1500.00,
-          concepto: 'Pago de servicios',
-          fecha: new Date('2025-04-15'),
-          estado: 'Completada'
+          monto: 1500.0,
+          concepto: "Pago de servicios",
+          fecha: new Date("2025-04-15"),
+          estado: "Completada",
         },
         {
           id: 2,
           cuentaOrigenId: 2,
           cuentaDestinoId: 3,
-          monto: 2500.50,
-          concepto: 'Transferencia personal',
-          fecha: new Date('2025-04-18'),
-          estado: 'Pendiente'
+          monto: 2500.5,
+          concepto: "Transferencia personal",
+          fecha: new Date("2025-04-18"),
+          estado: "Pendiente",
         },
         {
           id: 3,
           cuentaOrigenId: 1,
           cuentaDestinoId: 3,
           monto: 750.25,
-          concepto: 'Pago de factura',
-          fecha: new Date('2025-04-20'),
-          estado: 'Rechazada'
-        }
+          concepto: "Pago de factura",
+          fecha: new Date("2025-04-20"),
+          estado: "Rechazada",
+        },
       ]);
       setCargando(false);
     }, 1000);
@@ -52,22 +55,21 @@ interface ListaTransferenciasProps {
   const cambiarEstadoTransferencia = (id: number, nuevoEstado: string) => {
     // llamado a la api para cambiar el estado de la transferencia pendiente
     setTransferencias(
-      transferencias.map(t => 
+      transferencias.map((t) =>
         t.id === id ? { ...t, estado: nuevoEstado } : t
       )
     );
   };
 
-  const transferenciasFiltradas = transferencias.filter(transferencia => {
-    // Filtrar por búsqueda
-    const coincideBusqueda = 
-      transferencia.concepto.toLowerCase().includes(busqueda.toLowerCase()) || 
+  const transferenciasFiltradas = transferencias.filter((transferencia) => {
+    const coincideBusqueda =
+      transferencia.concepto.toLowerCase().includes(busqueda.toLowerCase()) ||
       transferencia.id?.toString().includes(busqueda) ||
       transferencia.monto.toString().includes(busqueda);
-    
-    // Filtrar por estado
-    const coincideEstado = filtroEstado === 'Todos' || transferencia.estado === filtroEstado;
-    
+
+    const coincideEstado =
+      filtroEstado === "Todos" || transferencia.estado === filtroEstado;
+
     return coincideBusqueda && coincideEstado;
   });
 
@@ -75,9 +77,12 @@ interface ListaTransferenciasProps {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Transferencias</h1>
-        <button onClick={onAdd} className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded flex items-center">
-            <Plus size={16} className="mr-2" />
-            Nueva Transferencia
+        <button
+          onClick={onAdd}
+          className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded flex items-center"
+        >
+          <Plus size={16} className="mr-2" />
+          Nueva Transferencia
         </button>
       </div>
 
@@ -92,7 +97,10 @@ interface ListaTransferenciasProps {
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
               />
-              <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
+              <Search
+                className="absolute left-3 top-2.5 text-gray-400"
+                size={18}
+              />
             </div>
             <div>
               <select
@@ -115,39 +123,70 @@ interface ListaTransferenciasProps {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full text-gray-800">
               <thead>
                 <tr className="bg-gray-50">
-                  <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                  <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Desde</th>
-                  <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hacia</th>
-                  <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
-                  <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Concepto</th>
-                  <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                  <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                  <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                  <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    ID
+                  </th>
+                  <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Desde
+                  </th>
+                  <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Hacia
+                  </th>
+                  <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Monto
+                  </th>
+                  <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Concepto
+                  </th>
+                  <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Fecha
+                  </th>
+                  <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Estado
+                  </th>
+                  <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Acciones
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {transferenciasFiltradas.length > 0 ? (
-                  transferenciasFiltradas.map(transferencia => (
+                  transferenciasFiltradas.map((transferencia) => (
                     <tr key={transferencia.id} className="hover:bg-gray-50">
-                      <td className="py-3 px-4 whitespace-nowrap">{transferencia.id}</td>
-                      <td className="py-3 px-4 whitespace-nowrap">{transferencia.cuentaOrigenId}</td>
-                      <td className="py-3 px-4 whitespace-nowrap">{transferencia.cuentaDestinoId}</td>
-                      <td className="py-3 px-4 whitespace-nowrap font-medium">
-                        ${transferencia.monto.toLocaleString('es-ES', { minimumFractionDigits: 2 })}
+                      <td className="py-3 px-4 whitespace-nowrap text-gray-800">
+                        {transferencia.id}
                       </td>
-                      <td className="py-3 px-4 whitespace-nowrap">{transferencia.concepto}</td>
-                      <td className="py-3 px-4 whitespace-nowrap">
+                      <td className="py-3 px-4 whitespace-nowrap text-gray-800">
+                        {transferencia.cuentaOrigenId}
+                      </td>
+                      <td className="py-3 px-4 whitespace-nowrap text-gray-800">
+                        {transferencia.cuentaDestinoId}
+                      </td>
+                      <td className="py-3 px-4 whitespace-nowrap font-medium text-gray-800">
+                        $
+                        {transferencia.monto.toLocaleString("es-ES", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </td>
+                      <td className="py-3 px-4 whitespace-nowrap text-gray-800">
+                        {transferencia.concepto}
+                      </td>
+                      <td className="py-3 px-4 whitespace-nowrap text-gray-800">
                         {transferencia.fecha?.toLocaleDateString()}
                       </td>
                       <td className="py-3 px-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          transferencia.estado === 'Completada' ? 'bg-green-100 text-green-800' : 
-                          transferencia.estado === 'Pendiente' ? 'bg-yellow-100 text-yellow-800' : 
-                          'bg-red-100 text-red-800'
-                        }`}>
+                        <span
+                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            transferencia.estado === "Completada"
+                              ? "bg-green-100 text-green-800"
+                              : transferencia.estado === "Pendiente"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-red-100 text-red-800"
+                          }`}
+                        >
                           {transferencia.estado}
                         </span>
                       </td>
@@ -156,21 +195,34 @@ interface ListaTransferenciasProps {
                           <button className="text-indigo-600 hover:text-indigo-800">
                             <Eye size={18} />
                           </button>
-                            <button className="text-blue-600 hover:text-blue-800" onClick={() => onEdit(transferencia.id!)}>
+                          <button
+                            className="text-blue-600 hover:text-blue-800"
+                            onClick={() => onEdit(transferencia.id!)}
+                          >
                             <Edit size={18} />
-                            </button>
-                          {transferencia.estado === 'Pendiente' && (
+                          </button>
+                          {transferencia.estado === "Pendiente" && (
                             <>
-                              <button 
+                              <button
                                 className="text-green-600 hover:text-green-800"
-                                onClick={() => cambiarEstadoTransferencia(transferencia.id!, 'Completada')}
+                                onClick={() =>
+                                  cambiarEstadoTransferencia(
+                                    transferencia.id!,
+                                    "Completada"
+                                  )
+                                }
                                 title="Aprobar transferencia"
                               >
                                 <CheckCheck size={18} />
                               </button>
-                              <button 
+                              <button
                                 className="text-red-600 hover:text-red-800"
-                                onClick={() => cambiarEstadoTransferencia(transferencia.id!, 'Rechazada')}
+                                onClick={() =>
+                                  cambiarEstadoTransferencia(
+                                    transferencia.id!,
+                                    "Rechazada"
+                                  )
+                                }
                                 title="Rechazar transferencia"
                               >
                                 <Ban size={18} />
@@ -183,7 +235,10 @@ interface ListaTransferenciasProps {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={8} className="py-4 px-4 text-center text-gray-500">
+                    <td
+                      colSpan={8}
+                      className="py-4 px-4 text-center text-gray-500"
+                    >
                       No se encontraron transferencias
                     </td>
                   </tr>
