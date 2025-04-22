@@ -12,6 +12,7 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.1.4",
     "amqplib": "^0.10.7",
+    "axios": "^1.8.4",
     "fund": "^1.0.0",
     "funding": "^1.0.9",
     "lucide-react": "^0.503.0",
