@@ -1,27 +1,30 @@
-import { useState, useEffect } from 'react';
-import { ArrowLeft, Save, Loader } from 'lucide-react';
-import { Transferencia, Cuenta } from '../types';
+import { useState, useEffect } from "react";
+import { ArrowLeft, Save, Loader } from "lucide-react";
+import { Transferencia, Cuenta } from "../types";
 
 interface TransferenciaFormProps {
   transferenciaId?: number;
   onBack: () => void;
 }
 
-export default function TransferenciaForm({ transferenciaId, onBack }: TransferenciaFormProps) {
+export default function TransferenciaForm({
+  transferenciaId,
+  onBack,
+}: TransferenciaFormProps) {
   const [transferencia, setTransferencia] = useState<Transferencia>({
     cuentaOrigenId: 0,
     cuentaDestinoId: 0,
     monto: 0,
-    concepto: '',
-    estado: 'Pendiente'
+    concepto: "",
+    estado: "Pendiente",
   });
- 
+
   const [cuentas, setCuentas] = useState<Cuenta[]>([]);
   const [cargando, setCargando] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [errores, setErrores] = useState<Record<string, string>>({});
   const [saldoDisponible, setSaldoDisponible] = useState(0);
- 
+
   const esEdicion = !!transferenciaId;
 
   useEffect(() => {
@@ -30,13 +33,37 @@ export default function TransferenciaForm({ transferenciaId, onBack }: Transfere
       try {
         // impelementacion de la api pendiente
         const cuentasData = [
-          { id: 1, numeroCuenta: '1234567890', tipoCuenta: 'Ahorro', banco: 'Banco ABC', saldo: 5000.50, activa: true, usuarioId: 1 },
-          { id: 2, numeroCuenta: '0987654321', tipoCuenta: 'Corriente', banco: 'Banco XYZ', saldo: 12500.75, activa: true, usuarioId: 1 },
-          { id: 3, numeroCuenta: '5678901234', tipoCuenta: 'Ahorro', banco: 'Banco DEF', saldo: 8750.25, activa: true, usuarioId: 2 }
+          {
+            id: 1,
+            numeroCuenta: "1234567890",
+            tipoCuenta: "Ahorro",
+            banco: "Banco ABC",
+            saldo: 5000.5,
+            activa: true,
+            usuarioId: 1,
+          },
+          {
+            id: 2,
+            numeroCuenta: "0987654321",
+            tipoCuenta: "Corriente",
+            banco: "Banco XYZ",
+            saldo: 12500.75,
+            activa: true,
+            usuarioId: 1,
+          },
+          {
+            id: 3,
+            numeroCuenta: "5678901234",
+            tipoCuenta: "Ahorro",
+            banco: "Banco DEF",
+            saldo: 8750.25,
+            activa: true,
+            usuarioId: 2,
+          },
         ];
         setCuentas(cuentasData);
       } catch (error) {
-        console.error('Error al cargar cuentas:', error);
+        console.error("Error al cargar cuentas:", error);
       }
     };
 
@@ -50,10 +77,10 @@ export default function TransferenciaForm({ transferenciaId, onBack }: Transfere
           id: transferenciaId,
           cuentaOrigenId: 1,
           cuentaDestinoId: 2,
-          monto: 1500.00,
-          concepto: 'Pago de servicios',
+          monto: 1500.0,
+          concepto: "Pago de servicios",
           fecha: new Date(),
-          estado: 'Completada'
+          estado: "Completada",
         });
         setCargando(false);
       }, 1000);
@@ -63,7 +90,9 @@ export default function TransferenciaForm({ transferenciaId, onBack }: Transfere
   // Actualizar saldo disponible cuando cambia la cuenta origen
   useEffect(() => {
     if (transferencia.cuentaOrigenId) {
-      const cuentaOrigen = cuentas.find(cuenta => cuenta.id === transferencia.cuentaOrigenId);
+      const cuentaOrigen = cuentas.find(
+        (cuenta) => cuenta.id === transferencia.cuentaOrigenId
+      );
       if (cuentaOrigen) {
         setSaldoDisponible(cuentaOrigen.saldo);
       }
@@ -74,77 +103,86 @@ export default function TransferenciaForm({ transferenciaId, onBack }: Transfere
 
   const validarFormulario = () => {
     const nuevosErrores: Record<string, string> = {};
-    
+
     if (!transferencia.cuentaOrigenId) {
-      nuevosErrores.cuentaOrigenId = 'Debe seleccionar una cuenta de origen';
+      nuevosErrores.cuentaOrigenId = "Debe seleccionar una cuenta de origen";
     }
-    
+
     if (!transferencia.cuentaDestinoId) {
-      nuevosErrores.cuentaDestinoId = 'Debe seleccionar una cuenta de destino';
+      nuevosErrores.cuentaDestinoId = "Debe seleccionar una cuenta de destino";
     }
-    
-    if (transferencia.cuentaOrigenId === transferencia.cuentaDestinoId && 
-        transferencia.cuentaOrigenId !== 0) {
-      nuevosErrores.cuentaDestinoId = 'La cuenta de destino debe ser diferente a la cuenta de origen';
+
+    if (
+      transferencia.cuentaOrigenId === transferencia.cuentaDestinoId &&
+      transferencia.cuentaOrigenId !== 0
+    ) {
+      nuevosErrores.cuentaDestinoId =
+        "La cuenta de destino debe ser diferente a la cuenta de origen";
     }
-    
+
     if (transferencia.monto <= 0) {
-      nuevosErrores.monto = 'El monto debe ser mayor que cero';
+      nuevosErrores.monto = "El monto debe ser mayor que cero";
     }
-    
+
     if (transferencia.monto > saldoDisponible) {
-      nuevosErrores.monto = 'El monto excede el saldo disponible';
+      nuevosErrores.monto = "El monto excede el saldo disponible";
     }
-    
+
     if (!transferencia.concepto.trim()) {
-      nuevosErrores.concepto = 'El concepto es obligatorio';
+      nuevosErrores.concepto = "El concepto es obligatorio";
     }
-    
+
     setErrores(nuevosErrores);
     return Object.keys(nuevosErrores).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validarFormulario()) {
       return;
     }
-    
+
     setGuardando(true);
-    
+
     try {
       // implementacion de la api para guardar la transferencia pendiente
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       // Simulando éxito para prueba
-      alert(esEdicion ? 'Transferencia actualizada con éxito' : 'Transferencia realizada con éxito');
+      alert(
+        esEdicion
+          ? "Transferencia actualizada con éxito"
+          : "Transferencia realizada con éxito"
+      );
       onBack();
     } catch (error) {
-      console.error('Error al procesar transferencia:', error);
-      alert('Ocurrió un error al procesar la transferencia');
+      console.error("Error al procesar transferencia:", error);
+      alert("Ocurrió un error al procesar la transferencia");
     } finally {
       setGuardando(false);
     }
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     const { name, value, type } = e.target;
-    
+
     // Manejo especial para campos numéricos
-    if (type === 'number') {
+    if (type === "number") {
       setTransferencia({ ...transferencia, [name]: parseFloat(value) || 0 });
-    } 
+    }
     // Manejo para los demás campos
     else {
       setTransferencia({ ...transferencia, [name]: value });
     }
-    
+
     // Limpiar error al cambiar el valor
     if (errores[name]) {
-      setErrores({ ...errores, [name]: '' });
+      setErrores({ ...errores, [name]: "" });
     }
   };
 
@@ -159,14 +197,14 @@ export default function TransferenciaForm({ transferenciaId, onBack }: Transfere
   return (
     <div className="p-6">
       <div className="flex items-center mb-6">
-        <button 
+        <button
           onClick={onBack}
           className="mr-4 p-2 rounded-full hover:bg-gray-100"
         >
           <ArrowLeft size={20} />
         </button>
         <h1 className="text-2xl font-bold">
-          {esEdicion ? 'Editar Transferencia' : 'Nueva Transferencia'}
+          {esEdicion ? "Editar Transferencia" : "Nueva Transferencia"}
         </h1>
       </div>
 
@@ -182,21 +220,24 @@ export default function TransferenciaForm({ transferenciaId, onBack }: Transfere
                 value={transferencia.cuentaOrigenId}
                 onChange={handleChange}
                 className={`w-full px-3 py-2 border rounded-md ${
-                  errores.cuentaOrigenId ? 'border-red-500' : 'border-gray-300'
+                  errores.cuentaOrigenId ? "border-red-500" : "border-gray-300"
                 }`}
                 disabled={esEdicion}
               >
                 <option value="">Seleccionar cuenta</option>
                 {cuentas
-                  .filter(cuenta => cuenta.activa)
-                  .map(cuenta => (
+                  .filter((cuenta) => cuenta.activa)
+                  .map((cuenta) => (
                     <option key={cuenta.id} value={cuenta.id}>
-                      {cuenta.numeroCuenta} - {cuenta.banco} ({cuenta.tipoCuenta}) - Saldo: ${cuenta.saldo.toFixed(2)}
+                      {cuenta.numeroCuenta} - {cuenta.banco} (
+                      {cuenta.tipoCuenta}) - Saldo: ${cuenta.saldo.toFixed(2)}
                     </option>
                   ))}
               </select>
               {errores.cuentaOrigenId && (
-                <p className="mt-1 text-sm text-red-600">{errores.cuentaOrigenId}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errores.cuentaOrigenId}
+                </p>
               )}
               {transferencia.cuentaOrigenId > 0 && (
                 <p className="mt-1 text-sm text-gray-600">
@@ -204,7 +245,7 @@ export default function TransferenciaForm({ transferenciaId, onBack }: Transfere
                 </p>
               )}
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Cuenta de Destino
@@ -214,24 +255,31 @@ export default function TransferenciaForm({ transferenciaId, onBack }: Transfere
                 value={transferencia.cuentaDestinoId}
                 onChange={handleChange}
                 className={`w-full px-3 py-2 border rounded-md ${
-                  errores.cuentaDestinoId ? 'border-red-500' : 'border-gray-300'
+                  errores.cuentaDestinoId ? "border-red-500" : "border-gray-300"
                 }`}
                 disabled={esEdicion}
               >
                 <option value="">Seleccionar cuenta</option>
                 {cuentas
-                  .filter(cuenta => cuenta.activa && cuenta.id !== transferencia.cuentaOrigenId)
-                  .map(cuenta => (
+                  .filter(
+                    (cuenta) =>
+                      cuenta.activa &&
+                      cuenta.id !== transferencia.cuentaOrigenId
+                  )
+                  .map((cuenta) => (
                     <option key={cuenta.id} value={cuenta.id}>
-                      {cuenta.numeroCuenta} - {cuenta.banco} ({cuenta.tipoCuenta})
+                      {cuenta.numeroCuenta} - {cuenta.banco} (
+                      {cuenta.tipoCuenta})
                     </option>
                   ))}
               </select>
               {errores.cuentaDestinoId && (
-                <p className="mt-1 text-sm text-red-600">{errores.cuentaDestinoId}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errores.cuentaDestinoId}
+                </p>
               )}
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Monto
@@ -243,7 +291,7 @@ export default function TransferenciaForm({ transferenciaId, onBack }: Transfere
                 onChange={handleChange}
                 step="0.01"
                 className={`w-full px-3 py-2 border rounded-md ${
-                  errores.monto ? 'border-red-500' : 'border-gray-300'
+                  errores.monto ? "border-red-500" : "border-gray-300"
                 }`}
                 disabled={esEdicion}
               />
@@ -251,7 +299,7 @@ export default function TransferenciaForm({ transferenciaId, onBack }: Transfere
                 <p className="mt-1 text-sm text-red-600">{errores.monto}</p>
               )}
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Estado
@@ -268,7 +316,7 @@ export default function TransferenciaForm({ transferenciaId, onBack }: Transfere
                 <option value="Rechazada">Rechazada</option>
               </select>
             </div>
-            
+
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Concepto
@@ -279,7 +327,7 @@ export default function TransferenciaForm({ transferenciaId, onBack }: Transfere
                 onChange={handleChange}
                 rows={3}
                 className={`w-full px-3 py-2 border rounded-md ${
-                  errores.concepto ? 'border-red-500' : 'border-gray-300'
+                  errores.concepto ? "border-red-500" : "border-gray-300"
                 }`}
                 disabled={esEdicion}
               ></textarea>
@@ -288,7 +336,7 @@ export default function TransferenciaForm({ transferenciaId, onBack }: Transfere
               )}
             </div>
           </div>
-          
+
           <div className="flex justify-end">
             <button
               type="button"
@@ -306,12 +354,12 @@ export default function TransferenciaForm({ transferenciaId, onBack }: Transfere
               {guardando ? (
                 <>
                   <Loader size={16} className="mr-2 animate-spin" />
-                  {esEdicion ? 'Actualizando...' : 'Procesando...'}
+                  {esEdicion ? "Actualizando..." : "Procesando..."}
                 </>
               ) : (
                 <>
                   <Save size={16} className="mr-2" />
-                  {esEdicion ? 'Actualizar' : 'Realizar Transferencia'}
+                  {esEdicion ? "Actualizar" : "Realizar Transferencia"}
                 </>
               )}
             </button>
