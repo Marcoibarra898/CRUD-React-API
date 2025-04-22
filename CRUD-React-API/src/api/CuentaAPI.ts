@@ -1,6 +1,5 @@
 import api from "./index";
 
-// Definir la interfaz para el objeto Cuenta
 export interface Cuenta {
   id?: number;
   usuarioId: number;
@@ -23,7 +22,7 @@ export const getCuentas = async (): Promise<Cuenta[]> => {
 };
 
 // Obtener una cuenta por su ID
-export const getCuentaById = async (id: number): Promise<Cuenta> => {
+export const getCuentaPorId = async (id: number): Promise<Cuenta> => {
   try {
     const response = await api.get(`/cuentas/${id}`);
     return response.data;
@@ -34,7 +33,7 @@ export const getCuentaById = async (id: number): Promise<Cuenta> => {
 };
 
 // Crear una nueva cuenta
-export const createCuenta = async (cuenta: Cuenta): Promise<Cuenta> => {
+export const crearCuenta = async (cuenta: Cuenta): Promise<Cuenta> => {
   try {
     const response = await api.post("/cuentas", cuenta);
     return response.data;
@@ -45,12 +44,12 @@ export const createCuenta = async (cuenta: Cuenta): Promise<Cuenta> => {
 };
 
 // Actualizar una cuenta existente
-export const updateCuenta = async (
+export const actualizarCuenta = async (
   id: number,
-  cuenta: Cuenta
+  cuenta: Partial<Cuenta>
 ): Promise<Cuenta> => {
   try {
-    const response = await api.put(`/cuentas/${id}`, cuenta);
+    const response = await api.patch(`/cuentas/${id}`, cuenta);
     return response.data;
   } catch (error) {
     console.error(`Error al actualizar la cuenta con ID ${id}:`, error);
@@ -59,7 +58,7 @@ export const updateCuenta = async (
 };
 
 // Eliminar una cuenta
-export const deleteCuenta = async (id: number): Promise<void> => {
+export const eliminarCuenta = async (id: number): Promise<void> => {
   try {
     await api.delete(`/cuentas/${id}`);
   } catch (error) {
@@ -69,7 +68,7 @@ export const deleteCuenta = async (id: number): Promise<void> => {
 };
 
 // Obtener cuentas por ID de usuario
-export const getCuentasByUsuarioId = async (
+export const getCuentasPorUsuarioId = async (
   usuarioId: number
 ): Promise<Cuenta[]> => {
   try {
@@ -85,13 +84,11 @@ export const getCuentasByUsuarioId = async (
 };
 
 // Actualizar saldo de una cuenta
-export const updateSaldo = async (
+export const actualizarSaldo = async (
   id: number,
   saldo: number
 ): Promise<Cuenta> => {
   try {
-    const cuenta = await getCuentaById(id);
-    cuenta.saldo = saldo;
     const response = await api.patch(`/cuentas/${id}`, { saldo });
     return response.data;
   } catch (error) {
@@ -102,10 +99,10 @@ export const updateSaldo = async (
 
 export default {
   getCuentas,
-  getCuentaById,
-  createCuenta,
-  updateCuenta,
-  deleteCuenta,
-  getCuentasByUsuarioId,
-  updateSaldo,
+  getCuentaPorId,
+  crearCuenta,
+  actualizarCuenta,
+  eliminarCuenta,
+  getCuentasPorUsuarioId,
+  actualizarSaldo,
 };
