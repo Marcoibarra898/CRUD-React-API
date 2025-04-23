@@ -1,15 +1,5 @@
 import api from "./index";
-
-export interface Usuario {
-  id?: number;
-  nombre: string;
-  apellido: string;
-  email: string;
-  password?: string;
-  rol?: string;
-  fechaRegistro?: string;
-  estado?: boolean;
-}
+import { Usuario } from "../types";
 
 // Obtener todos los usuarios
 export const getUsuarios = async (): Promise<Usuario[]> => {
@@ -68,19 +58,7 @@ export const eliminarUsuario = async (id: number): Promise<void> => {
   }
 };
 
-// Autenticar usuario
-export const autenticarUsuario = async (
-  email: string,
-  password: string
-): Promise<{ usuario: Usuario; token: string }> => {
-  try {
-    const response = await api.post("/login", { email, password });
-    return response.data;
-  } catch (error) {
-    console.error("Error al autenticar usuario:", error);
-    throw error;
-  }
-};
+
 
 export default {
   getUsuarios,
@@ -88,5 +66,5 @@ export default {
   crearUsuario,
   actualizarUsuario,
   eliminarUsuario,
-  autenticarUsuario,
 };
+

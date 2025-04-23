@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { ArrowLeft, Save, Loader } from "lucide-react";
 import { Transferencia, Cuenta } from "../types";
+import transferenciaAPI from "../api/TransferenciaAPI";
+import cuentasAPI from "../api/CuentaAPI";
 
 interface TransferenciaFormProps {
   transferenciaId?: number;
@@ -31,39 +33,11 @@ export default function TransferenciaForm({
     // Cargar cuentas para el selector
     const cargarCuentas = async () => {
       try {
-        // impelementacion de la api pendiente
-        const cuentasData = [
-          {
-            id: 1,
-            numeroCuenta: "1234567890",
-            tipoCuenta: "Ahorro",
-            banco: "Banco ABC",
-            saldo: 5000.5,
-            activa: true,
-            usuarioId: 1,
-          },
-          {
-            id: 2,
-            numeroCuenta: "0987654321",
-            tipoCuenta: "Corriente",
-            banco: "Banco XYZ",
-            saldo: 12500.75,
-            activa: true,
-            usuarioId: 1,
-          },
-          {
-            id: 3,
-            numeroCuenta: "5678901234",
-            tipoCuenta: "Ahorro",
-            banco: "Banco DEF",
-            saldo: 8750.25,
-            activa: true,
-            usuarioId: 2,
-          },
-        ];
+        const cuentasData = await cuentasAPI.getCuentas();
         setCuentas(cuentasData);
       } catch (error) {
         console.error("Error al cargar cuentas:", error);
+        alert("No se pudieron cargar las cuentas disponibles");
       }
     };
 
@@ -71,33 +45,36 @@ export default function TransferenciaForm({
 
     if (esEdicion) {
       setCargando(true);
-      // implementacion api para llamar transferencia pendiente
-      setTimeout(() => {
-        setTransferencia({
-          id: transferenciaId,
-          cuentaOrigenId: 1,
-          cuentaDestinoId: 2,
-          monto: 1500.0,
-          concepto: "Pago de servicios",
-          fecha: new Date(),
-          estado: "Completada",
-        });
-        setCargando(false);
-      }, 1000);
+      const cargarTransferencia = async () => {
+        try {
+          const transferenciaData = await transferenciaAPI.getTransferenciaPorId(transferenciaId);
+          setTransferencia(transferenciaData);
+        } catch (error) {
+          console.error("Error al cargar la transferencia:", error);
+          alert("No se pudo cargar la transferencia seleccionada");
+        } finally {
+          setCargando(false);
+        }
+      };
+      
+      cargarTransferencia();
     }
   }, [transferenciaId, esEdicion]);
 
-  // Actualizar saldo disponible cuando cambia la cuenta origen
+
   useEffect(() => {
-    if (transferencia.cuentaOrigenId) {
-      const cuentaOrigen = cuentas.find(
-        (cuenta) => cuenta.id === transferencia.cuentaOrigenId
-      );
-      if (cuentaOrigen) {
-        setSaldoDisponible(cuentaOrigen.saldo);
+    if (transferencia.cuentaOrigenId && cuentas.length > 0) {
+      const cuenta = cuentas.find(c => c.id === transferencia.cuentaOrigenId);
+  
+      if (cuenta) {
+        
+        const saldoNumerico = parseFloat(cuenta.saldo.toString());
+  
+        console.log("Saldo numérico parseado:", saldoNumerico);
+  
+        
+        setSaldoDisponible(!isNaN(saldoNumerico) ? saldoNumerico : 0);
       }
-    } else {
-      setSaldoDisponible(0);
     }
   }, [transferencia.cuentaOrigenId, cuentas]);
 
@@ -146,15 +123,23 @@ export default function TransferenciaForm({
     setGuardando(true);
 
     try {
-      // implementacion de la api para guardar la transferencia pendiente
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Simulando éxito para prueba
-      alert(
-        esEdicion
-          ? "Transferencia actualizada con éxito"
-          : "Transferencia realizada con éxito"
-      );
+      if (esEdicion) {
+        // Para edición, solo permitimos actualizar concepto y estado
+        await transferenciaAPI.actualizarTransferencia(transferenciaId!, {
+          concepto: transferencia.concepto,
+          estado: transferencia.estado
+        });
+        alert("Transferencia actualizada con éxito");
+      } else {
+        // Para creación, enviamos todos los datos requeridos
+        await transferenciaAPI.crearTransferencia({
+          cuentaOrigenId: transferencia.cuentaOrigenId,
+          cuentaDestinoId: transferencia.cuentaDestinoId,
+          monto: transferencia.monto,
+          concepto: transferencia.concepto
+        });
+        alert("Transferencia realizada con éxito");
+      }
       onBack();
     } catch (error) {
       console.error("Error al procesar transferencia:", error);
@@ -203,7 +188,7 @@ export default function TransferenciaForm({
         >
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-2xl font-bold">
+        <h1 className="text-2xl font-bold text-black">
           {esEdicion ? "Editar Transferencia" : "Nueva Transferencia"}
         </h1>
       </div>
@@ -219,7 +204,7 @@ export default function TransferenciaForm({
                 name="cuentaOrigenId"
                 value={transferencia.cuentaOrigenId}
                 onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-md ${
+                className={`w-full px-3 py-2 border rounded-md text-black ${
                   errores.cuentaOrigenId ? "border-red-500" : "border-gray-300"
                 }`}
                 disabled={esEdicion}
@@ -230,7 +215,7 @@ export default function TransferenciaForm({
                   .map((cuenta) => (
                     <option key={cuenta.id} value={cuenta.id}>
                       {cuenta.numeroCuenta} - {cuenta.banco} (
-                      {cuenta.tipoCuenta}) - Saldo: ${cuenta.saldo.toFixed(2)}
+                        {cuenta.tipoCuenta} - Saldo: ${typeof cuenta.saldo === 'number' ? cuenta.saldo.toFixed(2) : !isNaN(parseFloat(cuenta.saldo)) ? parseFloat(cuenta.saldo).toFixed(2) : '0.00'}
                     </option>
                   ))}
               </select>
@@ -254,7 +239,7 @@ export default function TransferenciaForm({
                 name="cuentaDestinoId"
                 value={transferencia.cuentaDestinoId}
                 onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-md ${
+                className={`w-full px-3 py-2 border rounded-md text-black ${
                   errores.cuentaDestinoId ? "border-red-500" : "border-gray-300"
                 }`}
                 disabled={esEdicion}
@@ -290,7 +275,7 @@ export default function TransferenciaForm({
                 value={transferencia.monto}
                 onChange={handleChange}
                 step="0.01"
-                className={`w-full px-3 py-2 border rounded-md ${
+                className={`w-full px-3 py-2 border rounded-md text-black ${
                   errores.monto ? "border-red-500" : "border-gray-300"
                 }`}
                 disabled={esEdicion}
@@ -308,7 +293,7 @@ export default function TransferenciaForm({
                 name="estado"
                 value={transferencia.estado}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-black"
                 disabled={!esEdicion}
               >
                 <option value="Pendiente">Pendiente</option>
@@ -326,10 +311,9 @@ export default function TransferenciaForm({
                 value={transferencia.concepto}
                 onChange={handleChange}
                 rows={3}
-                className={`w-full px-3 py-2 border rounded-md ${
+                className={`w-full px-3 py-2 border rounded-md text-black ${
                   errores.concepto ? "border-red-500" : "border-gray-300"
                 }`}
-                disabled={esEdicion}
               ></textarea>
               {errores.concepto && (
                 <p className="mt-1 text-sm text-red-600">{errores.concepto}</p>
@@ -369,3 +353,5 @@ export default function TransferenciaForm({
     </div>
   );
 }
+
+

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Eye, Edit, Plus, Search, Ban, CheckCheck } from "lucide-react";
 import { Transferencia } from "../types";
+import { getTransferencias, actualizarTransferencia } from "../api/TransferenciaAPI";
 
 interface ListaTransferenciasProps {
   onAdd: () => void;
@@ -15,50 +16,38 @@ export default function ListaTransferencias({
   const [busqueda, setBusqueda] = useState("");
   const [cargando, setCargando] = useState(true);
   const [filtroEstado, setFiltroEstado] = useState("Todos");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // implementar llamado a la api pendiente
-    setTimeout(() => {
-      setTransferencias([
-        {
-          id: 1,
-          cuentaOrigenId: 1,
-          cuentaDestinoId: 2,
-          monto: 1500.0,
-          concepto: "Pago de servicios",
-          fecha: new Date("2025-04-15"),
-          estado: "Completada",
-        },
-        {
-          id: 2,
-          cuentaOrigenId: 2,
-          cuentaDestinoId: 3,
-          monto: 2500.5,
-          concepto: "Transferencia personal",
-          fecha: new Date("2025-04-18"),
-          estado: "Pendiente",
-        },
-        {
-          id: 3,
-          cuentaOrigenId: 1,
-          cuentaDestinoId: 3,
-          monto: 750.25,
-          concepto: "Pago de factura",
-          fecha: new Date("2025-04-20"),
-          estado: "Rechazada",
-        },
-      ]);
-      setCargando(false);
-    }, 1000);
+    cargarTransferencias();
   }, []);
 
-  const cambiarEstadoTransferencia = (id: number, nuevoEstado: string) => {
-    // llamado a la api para cambiar el estado de la transferencia pendiente
-    setTransferencias(
-      transferencias.map((t) =>
-        t.id === id ? { ...t, estado: nuevoEstado } : t
-      )
-    );
+  const cargarTransferencias = async () => {
+    try {
+      setCargando(true);
+      setError(null);
+      const data = await getTransferencias();
+      setTransferencias(data);
+    } catch (err) {
+      console.error("Error al cargar las transferencias:", err);
+      setError("No se pudieron cargar las transferencias. Inténtalo de nuevo más tarde.");
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  const cambiarEstadoTransferencia = async (id: number, nuevoEstado: string) => {
+    try {
+      await actualizarTransferencia(id, { estado: nuevoEstado });
+      setTransferencias(
+        transferencias.map((t) =>
+          t.id === id ? { ...t, estado: nuevoEstado } : t
+        )
+      );
+    } catch (err) {
+      console.error(`Error al actualizar el estado de la transferencia ${id}:`, err);
+      alert("No se pudo actualizar el estado de la transferencia");
+    }
   };
 
   const transferenciasFiltradas = transferencias.filter((transferencia) => {
@@ -73,14 +62,17 @@ export default function ListaTransferencias({
     return coincideBusqueda && coincideEstado;
   });
 
+  const formatearFecha = (fecha: Date | string) => {
+    if (!fecha) return "";
+    const fechaObj = typeof fecha === 'string' ? new Date(fecha) : fecha;
+    return fechaObj.toLocaleDateString();
+  };
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Transferencias</h1>
-        <button
-          onClick={onAdd}
-          className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded flex items-center"
-        >
+        <h1 className="text-2xl font-bold text-black">Transferencias</h1>
+        <button onClick={onAdd} className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded flex items-center">
           <Plus size={16} className="mr-2" />
           Nueva Transferencia
         </button>
@@ -121,6 +113,16 @@ export default function ListaTransferencias({
           <div className="flex justify-center items-center p-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
+        ) : error ? (
+          <div className="p-6 text-center text-red-600">
+            {error}
+            <button 
+              onClick={cargarTransferencias}
+              className="block mx-auto mt-2 text-blue-600 hover:underline"
+            >
+              Reintentar
+            </button>
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-gray-800">
@@ -160,10 +162,14 @@ export default function ListaTransferencias({
                         {transferencia.id}
                       </td>
                       <td className="py-3 px-4 whitespace-nowrap text-gray-800">
-                        {transferencia.cuentaOrigenId}
+                        {transferencia.cuentaOrigen ? 
+                          `${transferencia.cuentaOrigen.numeroCuenta} (${transferencia.cuentaOrigen.banco})` : 
+                          transferencia.cuentaOrigenId}
                       </td>
                       <td className="py-3 px-4 whitespace-nowrap text-gray-800">
-                        {transferencia.cuentaDestinoId}
+                        {transferencia.cuentaDestino ? 
+                          `${transferencia.cuentaDestino.numeroCuenta} (${transferencia.cuentaDestino.banco})` : 
+                          transferencia.cuentaDestinoId}
                       </td>
                       <td className="py-3 px-4 whitespace-nowrap font-medium text-gray-800">
                         $
@@ -175,7 +181,7 @@ export default function ListaTransferencias({
                         {transferencia.concepto}
                       </td>
                       <td className="py-3 px-4 whitespace-nowrap text-gray-800">
-                        {transferencia.fecha?.toLocaleDateString()}
+                        {transferencia.fecha ? formatearFecha(transferencia.fecha) : ""}
                       </td>
                       <td className="py-3 px-4 whitespace-nowrap">
                         <span
@@ -192,12 +198,16 @@ export default function ListaTransferencias({
                       </td>
                       <td className="py-3 px-4 whitespace-nowrap">
                         <div className="flex space-x-2">
-                          <button className="text-indigo-600 hover:text-indigo-800">
+                          <button 
+                            className="text-indigo-600 hover:text-indigo-800"
+                            title="Ver detalles"
+                          >
                             <Eye size={18} />
                           </button>
                           <button
                             className="text-blue-600 hover:text-blue-800"
                             onClick={() => onEdit(transferencia.id!)}
+                            title="Editar"
                           >
                             <Edit size={18} />
                           </button>

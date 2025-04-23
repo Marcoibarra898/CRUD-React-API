@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { ArrowLeft, Save, Loader } from "lucide-react";
 import { Cuenta, Usuario } from "../types";
+import { getCuentaPorId, crearCuenta, actualizarCuenta } from "../api/CuentaAPI";
+import api from "../api/index";
 
 interface CuentaFormProps {
   cuentaId?: number;
@@ -28,31 +30,8 @@ export default function CuentaForm({ cuentaId, onBack }: CuentaFormProps) {
     // Cargar usuarios para el selector
     const cargarUsuarios = async () => {
       try {
-        // implementacion de la api pendiente
-        const usuariosData = [
-          {
-            id: 1,
-            nombre: "Juan",
-            apellido: "Pérez",
-            email: "juan@example.com",
-            telefono: "123456789",
-          },
-          {
-            id: 2,
-            nombre: "María",
-            apellido: "González",
-            email: "maria@example.com",
-            telefono: "987654321",
-          },
-          {
-            id: 3,
-            nombre: "Carlos",
-            apellido: "Rodríguez",
-            email: "carlos@example.com",
-            telefono: "456789123",
-          },
-        ];
-        setUsuarios(usuariosData);
+        const response = await api.get("/usuarios");
+        setUsuarios(response.data);
       } catch (error) {
         console.error("Error al cargar usuarios:", error);
       }
@@ -60,21 +39,21 @@ export default function CuentaForm({ cuentaId, onBack }: CuentaFormProps) {
 
     cargarUsuarios();
 
-    if (esEdicion) {
-      setCargando(true);
-      // implementacion api para llamar cuentas pendiente
-      setTimeout(() => {
-        setCuenta({
-          id: cuentaId,
-          numeroCuenta: "1234567890",
-          tipoCuenta: "Ahorro",
-          banco: "Banco ABC",
-          saldo: 5000.5,
-          activa: true,
-          usuarioId: 1,
-        });
-        setCargando(false);
-      }, 1000);
+    if (esEdicion && cuentaId) {
+      const cargarCuenta = async () => {
+        try {
+          setCargando(true);
+          const cuentaData = await getCuentaPorId(cuentaId);
+          setCuenta(cuentaData);
+        } catch (error) {
+          console.error(`Error al cargar la cuenta con ID ${cuentaId}:`, error);
+          alert("No se pudo cargar la información de la cuenta");
+        } finally {
+          setCargando(false);
+        }
+      };
+
+      cargarCuenta();
     }
   }, [cuentaId, esEdicion]);
 
@@ -111,13 +90,13 @@ export default function CuentaForm({ cuentaId, onBack }: CuentaFormProps) {
     setGuardando(true);
 
     try {
-      // implementacion de la api para guardar la cuenta pendiente
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Simulando éxito para prueba
-      alert(
-        esEdicion ? "Cuenta actualizada con éxito" : "Cuenta creada con éxito"
-      );
+      if (esEdicion && cuenta.id) {
+        await actualizarCuenta(cuenta.id, cuenta);
+        alert("Cuenta actualizada con éxito");
+      } else {
+        await crearCuenta(cuenta);
+        alert("Cuenta creada con éxito");
+      }
       onBack();
     } catch (error) {
       console.error("Error al guardar cuenta:", error);
@@ -170,7 +149,7 @@ export default function CuentaForm({ cuentaId, onBack }: CuentaFormProps) {
         >
           <ArrowLeft size={18} className="sm:text-lg" />
         </button>
-        <h1 className="text-lg sm:text-xl md:text-2xl font-bold">
+        <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-black">
           {esEdicion ? "Editar Cuenta" : "Nueva Cuenta"}
         </h1>
       </div>

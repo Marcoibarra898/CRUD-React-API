@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Edit, Trash2, Plus, Search, User } from "lucide-react";
 import { Usuario } from "../types";
+import {  getUsuarios, eliminarUsuario as eliminarUsuarioAPI } from "../api/UsuarioAPI";
 
 interface ListaUsuariosProps {
   onAdd: () => void;
@@ -11,38 +12,25 @@ export default function ListaUsuarios({ onAdd, onEdit }: ListaUsuariosProps) {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [busqueda, setBusqueda] = useState("");
   const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  // Cargar usuarios al montar el componente
   useEffect(() => {
-    // implementacion de la api pendiente
-    setTimeout(() => {
-      setUsuarios([
-        {
-          id: 1,
-          nombre: "Juan",
-          apellido: "Pérez",
-          email: "juan.perez@example.com",
-          telefono: "123456789",
-          fechaRegistro: new Date("2025-01-15"),
-        },
-        {
-          id: 2,
-          nombre: "María",
-          apellido: "González",
-          email: "maria.gonzalez@example.com",
-          telefono: "987654321",
-          fechaRegistro: new Date("2025-02-20"),
-        },
-        {
-          id: 3,
-          nombre: "Carlos",
-          apellido: "Rodríguez",
-          email: "carlos.rodriguez@example.com",
-          telefono: "456789123",
-          fechaRegistro: new Date("2025-03-10"),
-        },
-      ]);
-      setCargando(false);
-    }, 1000);
+    const cargarUsuarios = async () => {
+      try {
+        setCargando(true);
+        const data = await getUsuarios();
+        setUsuarios(data);
+        setError(null);
+      } catch (err) {
+        console.error("Error al cargar usuarios:", err);
+        setError("No se pudieron cargar los usuarios. Intente nuevamente más tarde.");
+      } finally {
+        setCargando(false);
+      }
+    };
+
+    cargarUsuarios();
   }, []);
 
   const usuariosFiltrados = usuarios.filter(
@@ -52,17 +40,26 @@ export default function ListaUsuarios({ onAdd, onEdit }: ListaUsuariosProps) {
       usuario.email.toLowerCase().includes(busqueda.toLowerCase())
   );
 
-  const eliminarUsuario = (id: number) => {
-    // implementacion de eliminar usuario pendiente al llamar la api
+  const eliminarUsuario = async (id: number) => {
     if (window.confirm("¿Estás seguro de que deseas eliminar este usuario?")) {
-      setUsuarios(usuarios.filter((u) => u.id !== id));
+      try {
+        setCargando(true);
+        await eliminarUsuarioAPI(id);
+        setUsuarios(usuarios.filter((u) => u.id !== id));
+        setError(null);
+      } catch (err) {
+        console.error(`Error al eliminar el usuario con ID ${id}:`, err);
+        setError("No se pudo eliminar el usuario. Intente nuevamente más tarde.");
+      } finally {
+        setCargando(false);
+      }
     }
   };
 
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Usuarios</h1>
+        <h1 className="text-2xl font-bold text-black">Usuarios</h1>
         <button
           onClick={onAdd}
           className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded flex items-center"
@@ -71,6 +68,12 @@ export default function ListaUsuarios({ onAdd, onEdit }: ListaUsuariosProps) {
           Nuevo Usuario
         </button>
       </div>
+
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          {error}
+        </div>
+      )}
 
       <div className="bg-white rounded-lg shadow mb-6">
         <div className="p-4">
@@ -119,8 +122,6 @@ export default function ListaUsuarios({ onAdd, onEdit }: ListaUsuariosProps) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 text-gray-800">
-                {" "}
-                {/* <-- Cambio aquí */}
                 {usuariosFiltrados.length > 0 ? (
                   usuariosFiltrados.map((usuario) => (
                     <tr key={usuario.id} className="hover:bg-gray-50">
@@ -143,10 +144,10 @@ export default function ListaUsuarios({ onAdd, onEdit }: ListaUsuariosProps) {
                         {usuario.email}
                       </td>
                       <td className="py-3 px-4 whitespace-nowrap">
-                        {usuario.telefono}
+                        {usuario.telefono || "N/A"}
                       </td>
                       <td className="py-3 px-4 whitespace-nowrap">
-                        {usuario.fechaRegistro?.toLocaleDateString()}
+                        {usuario.fechaRegistro ? new Date(usuario.fechaRegistro).toLocaleDateString() : "N/A"}
                       </td>
                       <td className="py-3 px-4 whitespace-nowrap">
                         <div className="flex space-x-2">
@@ -160,7 +161,7 @@ export default function ListaUsuarios({ onAdd, onEdit }: ListaUsuariosProps) {
                           </button>
                           <button
                             className="text-red-600 hover:text-red-800"
-                            onClick={() => eliminarUsuario(usuario.id!)}
+                            onClick={() => usuario.id !== undefined && eliminarUsuario(usuario.id)}
                           >
                             <Trash2 size={18} />
                           </button>

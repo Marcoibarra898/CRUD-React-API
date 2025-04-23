@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import { Edit, Trash2, Plus, Search, CreditCard, Eye } from "lucide-react";
 import { Cuenta } from "../types";
+import { 
+  getCuentas, 
+  eliminarCuenta as eliminarCuentaAPI 
+} from "../api/CuentaAPI";
 
 interface ListaCuentasProps {
   onAdd: () => void;
@@ -11,40 +15,24 @@ export default function ListaCuentas({ onAdd, onEdit }: ListaCuentasProps) {
   const [cuentas, setCuentas] = useState<Cuenta[]>([]);
   const [busqueda, setBusqueda] = useState("");
   const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setTimeout(() => {
-      setCuentas([
-        {
-          id: 1,
-          numeroCuenta: "1234567890",
-          tipoCuenta: "Ahorro",
-          banco: "Banco ABC",
-          saldo: 5000.5,
-          activa: true,
-          usuarioId: 1,
-        },
-        {
-          id: 2,
-          numeroCuenta: "0987654321",
-          tipoCuenta: "Corriente",
-          banco: "Banco XYZ",
-          saldo: 12500.75,
-          activa: true,
-          usuarioId: 1,
-        },
-        {
-          id: 3,
-          numeroCuenta: "5678901234",
-          tipoCuenta: "Ahorro",
-          banco: "Banco DEF",
-          saldo: 8750.25,
-          activa: false,
-          usuarioId: 2,
-        },
-      ]);
-      setCargando(false);
-    }, 1000);
+    const cargarCuentas = async () => {
+      try {
+        setCargando(true);
+        const data = await getCuentas();
+        setCuentas(data);
+        setError(null);
+      } catch (err) {
+        console.error("Error al cargar cuentas:", err);
+        setError("No se pudieron cargar las cuentas. Intente nuevamente más tarde.");
+      } finally {
+        setCargando(false);
+      }
+    };
+
+    cargarCuentas();
   }, []);
 
   const cuentasFiltradas = cuentas.filter(
@@ -54,16 +42,26 @@ export default function ListaCuentas({ onAdd, onEdit }: ListaCuentasProps) {
       cuenta.tipoCuenta.toLowerCase().includes(busqueda.toLowerCase())
   );
 
-  const eliminarCuenta = (id: number) => {
+  const eliminarCuenta = async (id: number) => {
     if (window.confirm("¿Estás seguro de que deseas eliminar esta cuenta?")) {
-      setCuentas(cuentas.filter((c) => c.id !== id));
+      try {
+        setCargando(true);
+        await eliminarCuentaAPI(id);
+        setCuentas(cuentas.filter((c) => c.id !== id));
+        setError(null);
+      } catch (err) {
+        console.error(`Error al eliminar la cuenta con ID ${id}:`, err);
+        setError("No se pudo eliminar la cuenta. Intente nuevamente más tarde.");
+      } finally {
+        setCargando(false);
+      }
     }
   };
 
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Cuentas Bancarias</h1>
+        <h1 className="text-2xl font-bold text-black">Cuentas Bancarias</h1>
         <button
           onClick={onAdd}
           className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded flex items-center"
@@ -72,6 +70,12 @@ export default function ListaCuentas({ onAdd, onEdit }: ListaCuentasProps) {
           Nueva Cuenta
         </button>
       </div>
+
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          {error}
+        </div>
+      )}
 
       <div className="bg-white rounded-lg shadow mb-6">
         <div className="p-4">
@@ -179,7 +183,7 @@ export default function ListaCuentas({ onAdd, onEdit }: ListaCuentasProps) {
                           </button>
                           <button
                             className="text-red-600 hover:text-red-800"
-                            onClick={() => eliminarCuenta(cuenta.id!)}
+                            onClick={() => cuenta.id !== undefined && eliminarCuenta(cuenta.id)}
                           >
                             <Trash2 size={18} />
                           </button>
@@ -202,6 +206,6 @@ export default function ListaCuentas({ onAdd, onEdit }: ListaCuentasProps) {
           </div>
         )}
       </div>
-    </div> // <- cierre final del return
+    </div> 
   );
 }

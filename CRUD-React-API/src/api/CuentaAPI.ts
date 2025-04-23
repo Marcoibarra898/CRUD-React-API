@@ -1,14 +1,5 @@
 import api from "./index";
-
-export interface Cuenta {
-  id?: number;
-  usuarioId: number;
-  numeroCuenta: string;
-  saldo: number;
-  tipoCuenta: string;
-  fechaCreacion?: string;
-  estado?: boolean;
-}
+import { Cuenta } from "../types";
 
 // Obtener todas las cuentas
 export const getCuentas = async (): Promise<Cuenta[]> => {
@@ -67,35 +58,6 @@ export const eliminarCuenta = async (id: number): Promise<void> => {
   }
 };
 
-// Obtener cuentas por ID de usuario
-export const getCuentasPorUsuarioId = async (
-  usuarioId: number
-): Promise<Cuenta[]> => {
-  try {
-    const response = await api.get(`/cuentas?usuarioId=${usuarioId}`);
-    return response.data;
-  } catch (error) {
-    console.error(
-      `Error al obtener las cuentas del usuario ${usuarioId}:`,
-      error
-    );
-    throw error;
-  }
-};
-
-// Actualizar saldo de una cuenta
-export const actualizarSaldo = async (
-  id: number,
-  saldo: number
-): Promise<Cuenta> => {
-  try {
-    const response = await api.patch(`/cuentas/${id}`, { saldo });
-    return response.data;
-  } catch (error) {
-    console.error(`Error al actualizar el saldo de la cuenta ${id}:`, error);
-    throw error;
-  }
-};
 
 export default {
   getCuentas,
@@ -103,6 +65,4 @@ export default {
   crearCuenta,
   actualizarCuenta,
   eliminarCuenta,
-  getCuentasPorUsuarioId,
-  actualizarSaldo,
 };

@@ -12,10 +12,30 @@ import {
   Legend,
 } from "recharts";
 import { Users, CreditCard, ArrowRightLeft, Wallet, Plus } from "lucide-react";
-import { EstadisticasDashboard } from "../types";
+import { EstadisticasDashboard, Transferencia } from "../types";
+import { getUsuarios } from "../api/UsuarioAPI";
+import { getCuentas } from "../api/CuentaAPI";
+import { getTransferencias } from "../api/TransferenciaAPI";
 
-// Datos de ejemplo - implementacion de los metodos de la api pendiente
+
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
+
+
+// Helper function para agrupar transferencias por mes con tipos correctos
+const agruparTransferenciasPorMes = (transferencias: Transferencia[]) => {
+  const meses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+  const transferenciasAgrupadas = meses.map(mes => ({ mes, transferencias: 0 }));
+  
+  transferencias.forEach((transferencia: Transferencia) => {
+    const fecha = new Date(transferencia.fecha ?? 0);
+    const mesIndex = fecha.getMonth();
+    transferenciasAgrupadas[mesIndex].transferencias += 1;
+  });
+  
+  // Obtener solo los últimos 4 meses con datos
+  const mesesConDatos = transferenciasAgrupadas.filter(item => item.transferencias > 0);
+  return mesesConDatos.slice(-4); // Últimos 4 meses con transferencias
+};
 
 export default function Dashboard() {
   const [estadisticas, setEstadisticas] = useState<EstadisticasDashboard>({
@@ -31,62 +51,107 @@ export default function Dashboard() {
     ultimasTransferencias: [],
   });
 
-  // Simular carga de datos
+  const [datosMensuales, setDatosMensuales] = useState<{mes: string; transferencias: number}[]>([
+    { mes: "Ene", transferencias: 0 },
+    { mes: "Feb", transferencias: 0 },
+    { mes: "Mar", transferencias: 0 },
+    { mes: "Abr", transferencias: 0 },
+  ]);
+
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+
+
+  // Cargar datos reales desde las APIs
   useEffect(() => {
-    // implementacion de la api pendiente para las estadisticas reales
-    setEstadisticas({
-      totalUsuarios: 24,
-      totalCuentas: 36,
-      totalTransferencias: 120,
-      saldoTotal: 45680.25,
-      transferenciasPorEstado: [
-        { name: "Pendiente", value: 15 },
-        { name: "Completada", value: 95 },
-        { name: "Rechazada", value: 10 },
-      ],
-      ultimasTransferencias: [
-        {
-          id: 1,
-          cuentaOrigenId: 1,
-          cuentaDestinoId: 2,
-          fecha: new Date("2025-04-19"),
-          monto: 1200,
-          concepto: "Pago de servicios",
-          estado: "Completada",
-        },
-        {
-          id: 2,
-          cuentaOrigenId: 1,
-          cuentaDestinoId: 3,
-          fecha: new Date("2025-04-20"),
-          monto: 500,
-          concepto: "Transferencia personal",
-          estado: "Completada",
-        },
-        {
-          id: 3,
-          cuentaOrigenId: 2,
-          cuentaDestinoId: 1,
-          fecha: new Date("2025-04-21"),
-          monto: 350,
-          concepto: "Pago de factura",
-          estado: "Pendiente",
-        },
-      ],
-    });
+    const cargarDatos = async () => {
+      try {
+        setLoading(true);
+        
+        // Obtener datos de todas las APIs
+        const [usuarios, cuentas, transferencias] = await Promise.all([
+          getUsuarios(),
+          getCuentas(),
+          getTransferencias()
+        ]);
+        
+        // Calcular estadísticas
+        const saldoTotal = cuentas.reduce((total, cuenta) => total + parseFloat(cuenta.saldo.toString()), 0);
+        
+        // Contar transferencias por estado
+        const pendientes = transferencias.filter(t => t.estado === "Pendiente").length;
+        const completadas = transferencias.filter(t => t.estado === "Completada").length;
+        const rechazadas = transferencias.filter(t => t.estado === "Rechazada").length;
+        
+        // Ordenar transferencias por fecha (más recientes primero)
+        const transferenciasOrdenadas = [...transferencias].sort((a, b) => 
+          new Date(b.fecha ?? 0).getTime() - new Date(a.fecha ?? 0).getTime()
+        );
+        
+        // Tomar las 3 más recientes
+        const ultimasTransferencias = transferenciasOrdenadas.slice(0, 3);
+        
+        // Actualizar el estado con los datos reales
+        setEstadisticas({
+          totalUsuarios: usuarios.length,
+          totalCuentas: cuentas.length,
+          totalTransferencias: transferencias.length,
+          saldoTotal: saldoTotal,
+          transferenciasPorEstado: [
+            { name: "Pendiente", value: pendientes },
+            { name: "Completada", value: completadas },
+            { name: "Rechazada", value: rechazadas },
+          ],
+          ultimasTransferencias: ultimasTransferencias,
+        });
+        
+        // Actualizar datos mensuales
+        setDatosMensuales(agruparTransferenciasPorMes(transferencias));
+        
+        setLoading(false);
+      } catch (err) {
+        console.error("Error al cargar datos para el dashboard:", err);
+        setError("No se pudieron cargar los datos. Por favor, intenta más tarde.");
+        setLoading(false);
+      }
+    };
+    
+    cargarDatos();
   }, []);
 
-  // Datos para gráfico de barras
-  const datosMensuales = [
-    { mes: "Ene", transferencias: 65 },
-    { mes: "Feb", transferencias: 59 },
-    { mes: "Mar", transferencias: 80 },
-    { mes: "Abr", transferencias: 81 },
-  ];
+  // Estado de carga
+  if (loading) {
+    return (
+      <div className="p-2 sm:p-4 md:p-6 flex justify-center items-center h-64">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-t-blue-500 border-r-transparent border-b-blue-500 border-l-transparent"></div>
+          <p className="mt-2 text-gray-600">Cargando datos...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Estado de error
+  if (error) {
+    return (
+      <div className="p-2 sm:p-4 md:p-6">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          <p>{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-2 bg-red-100 hover:bg-red-200 text-red-800 px-3 py-1 rounded text-sm"
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-2 sm:p-4 md:p-6">
-      <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Dashboard</h1>
+      <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-black">Dashboard</h1>
 
       {/* Cards de estadísticas - Móvil: una columna, Tablet: dos columnas, Desktop: cuatro columnas */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
@@ -96,7 +161,7 @@ export default function Dashboard() {
           </div>
           <div className="ml-3 sm:ml-4">
             <p className="text-gray-500 text-xs sm:text-sm">Usuarios</p>
-            <p className="text-base sm:text-xl font-semibold">
+            <p className="text-base sm:text-xl font-semibold text-black">
               {estadisticas.totalUsuarios}
             </p>
           </div>
@@ -108,7 +173,7 @@ export default function Dashboard() {
           </div>
           <div className="ml-3 sm:ml-4">
             <p className="text-gray-500 text-xs sm:text-sm">Cuentas</p>
-            <p className="text-base sm:text-xl font-semibold">
+            <p className="text-base sm:text-xl font-semibold text-black">
               {estadisticas.totalCuentas}
             </p>
           </div>
@@ -120,7 +185,7 @@ export default function Dashboard() {
           </div>
           <div className="ml-3 sm:ml-4">
             <p className="text-gray-500 text-xs sm:text-sm">Transferencias</p>
-            <p className="text-base sm:text-xl font-semibold">
+            <p className="text-base sm:text-xl font-semibold text-black">
               {estadisticas.totalTransferencias}
             </p>
           </div>
@@ -132,7 +197,7 @@ export default function Dashboard() {
           </div>
           <div className="ml-3 sm:ml-4">
             <p className="text-gray-500 text-xs sm:text-sm">Saldo Total</p>
-            <p className="text-base sm:text-xl font-semibold">
+            <p className="text-base sm:text-xl font-semibold text-black">
               ${estadisticas.saldoTotal.toLocaleString()}
             </p>
           </div>
@@ -234,7 +299,7 @@ export default function Dashboard() {
                     {t.id}
                   </td>
                   <td className="py-2 sm:py-3 px-2 sm:px-4 whitespace-nowrap text-xs sm:text-sm">
-                    {t.fecha ? t.fecha.toLocaleDateString() : ""}
+                    {new Date(t.fecha ?? 0).toLocaleDateString()}
                   </td>
                   <td className="py-2 sm:py-3 px-2 sm:px-4 whitespace-nowrap text-xs sm:text-sm">
                     ${t.monto.toLocaleString()}

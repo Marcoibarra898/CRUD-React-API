@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Users, CreditCard, ArrowRightLeft, BarChart3 } from "lucide-react";
 import "./App.css";
 
-import Dashboard from "./components/Dashboard";
+import Dashboard from "./components/dashboard";
 import CuentaForm from "./components/FormularioCuentas";
 import TransferenciaForm from "./components/FormularioTransferencias";
 import UsuarioForm from "./components/FormularioUsuario";
