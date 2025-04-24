@@ -86,7 +86,9 @@ export default function Dashboard() {
 
   return (
     <div className="p-2 sm:p-4 md:p-6">
-      <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Dashboard</h1>
+      <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-gray-500 ">
+        Dashboard
+      </h1>
 
       {/* Cards de estadísticas - Móvil: una columna, Tablet: dos columnas, Desktop: cuatro columnas */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
@@ -96,7 +98,7 @@ export default function Dashboard() {
           </div>
           <div className="ml-3 sm:ml-4">
             <p className="text-gray-500 text-xs sm:text-sm">Usuarios</p>
-            <p className="text-base sm:text-xl font-semibold">
+            <p className="text-base sm:text-xl font-semibold text-gray-500">
               {estadisticas.totalUsuarios}
             </p>
           </div>
@@ -108,7 +110,7 @@ export default function Dashboard() {
           </div>
           <div className="ml-3 sm:ml-4">
             <p className="text-gray-500 text-xs sm:text-sm">Cuentas</p>
-            <p className="text-base sm:text-xl font-semibold">
+            <p className="text-base sm:text-xl font-semibold text-gray-500 ">
               {estadisticas.totalCuentas}
             </p>
           </div>
@@ -120,7 +122,7 @@ export default function Dashboard() {
           </div>
           <div className="ml-3 sm:ml-4">
             <p className="text-gray-500 text-xs sm:text-sm">Transferencias</p>
-            <p className="text-base sm:text-xl font-semibold">
+            <p className="text-base sm:text-xl font-semibold text-gray-500 ">
               {estadisticas.totalTransferencias}
             </p>
           </div>
@@ -132,7 +134,7 @@ export default function Dashboard() {
           </div>
           <div className="ml-3 sm:ml-4">
             <p className="text-gray-500 text-xs sm:text-sm">Saldo Total</p>
-            <p className="text-base sm:text-xl font-semibold">
+            <p className="text-base sm:text-xl font-semibold text-gray-500 ">
               ${estadisticas.saldoTotal.toLocaleString()}
             </p>
           </div>
@@ -199,7 +201,7 @@ export default function Dashboard() {
       {/* Últimas transferencias */}
       <div className="bg-white rounded-lg shadow">
         <div className="p-3 sm:p-4 border-b flex justify-between items-center flex-wrap gap-2">
-          <h2 className="text-base sm:text-lg font-semibold">
+          <h2 className="text-base sm:text-lg font-semibold text-gray-900 ">
             Últimas Transferencias
           </h2>
           <button className="flex items-center text-sm sm:text-base text-blue-600 hover:text-blue-800">
@@ -230,16 +232,16 @@ export default function Dashboard() {
             <tbody className="divide-y divide-gray-200">
               {estadisticas.ultimasTransferencias.map((t, i) => (
                 <tr key={i}>
-                  <td className="py-2 sm:py-3 px-2 sm:px-4 whitespace-nowrap text-xs sm:text-sm">
+                  <td className="py-2 sm:py-3 px-2 sm:px-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">
                     {t.id}
                   </td>
-                  <td className="py-2 sm:py-3 px-2 sm:px-4 whitespace-nowrap text-xs sm:text-sm">
+                  <td className="py-2 sm:py-3 px-2 sm:px-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">
                     {t.fecha ? t.fecha.toLocaleDateString() : ""}
                   </td>
-                  <td className="py-2 sm:py-3 px-2 sm:px-4 whitespace-nowrap text-xs sm:text-sm">
+                  <td className="py-2 sm:py-3 px-2 sm:px-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">
                     ${t.monto.toLocaleString()}
                   </td>
-                  <td className="py-2 sm:py-3 px-2 sm:px-4 whitespace-nowrap text-xs sm:text-sm hidden sm:table-cell">
+                  <td className="py-2 sm:py-3 px-2 sm:px-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">
                     {t.concepto}
                   </td>
                   <td className="py-2 sm:py-3 px-2 sm:px-4 whitespace-nowrap">

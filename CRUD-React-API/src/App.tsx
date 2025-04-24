@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Users, CreditCard, ArrowRightLeft, BarChart3 } from "lucide-react";
 import "./App.css";
 
-import Dashboard from "./components/Dashboard";
+import Dashboard from "./components/dashboard";
 import CuentaForm from "./components/FormularioCuentas";
 import TransferenciaForm from "./components/FormularioTransferencias";
 import UsuarioForm from "./components/FormularioUsuario";
@@ -10,9 +10,61 @@ import ListaCuentas from "./components/ListaCuentas";
 import ListaTransferencias from "./components/ListaTransferencias";
 import ListaUsuarios from "./components/ListaUsuarios";
 
+import { Cuenta } from "./types";
+
 function App() {
   const [currentView, setCurrentView] = useState("dashboard");
   const [editId, setEditId] = useState<number | undefined>(undefined);
+
+  // Estado global para cuentas
+  const [cuentas, setCuentas] = useState<Cuenta[]>([
+    {
+      id: 1,
+      numeroCuenta: "1234567890",
+      tipoCuenta: "Ahorro",
+      banco: "Banco ABC",
+      saldo: 5000.5,
+      activa: true,
+      usuarioId: 1,
+    },
+    {
+      id: 2,
+      numeroCuenta: "0987654321",
+      tipoCuenta: "Corriente",
+      banco: "Banco XYZ",
+      saldo: 12500.75,
+      activa: true,
+      usuarioId: 1,
+    },
+    {
+      id: 3,
+      numeroCuenta: "5678901234",
+      tipoCuenta: "Ahorro",
+      banco: "Banco DEF",
+      saldo: 8750.25,
+      activa: true,
+      usuarioId: 2,
+    },
+  ]);
+
+  // Lógica de transferencia
+  const handleTransferencia = (
+    cuentaOrigenId: number,
+    cuentaDestinoId: number,
+    monto: number
+  ) => {
+    setCuentas((prevCuentas) =>
+      prevCuentas.map((cuenta) => {
+        if (cuenta.id === cuentaOrigenId) {
+          return { ...cuenta, saldo: cuenta.saldo - monto };
+        }
+        if (cuenta.id === cuentaDestinoId) {
+          return { ...cuenta, saldo: cuenta.saldo + monto };
+        }
+        return cuenta;
+      })
+    );
+  };
 
   const navigateTo = (view: string, id?: number) => {
     setCurrentView(view);
@@ -26,6 +78,7 @@ function App() {
       case "cuentas":
         return (
           <ListaCuentas
+            cuentasData={cuentas}
             onAdd={() => navigateTo("nuevaCuenta")}
             onEdit={(id: number) => navigateTo("editarCuenta", id)}
           />
@@ -45,16 +98,21 @@ function App() {
         );
       case "nuevaTransferencia":
         return (
-          <TransferenciaForm onBack={() => navigateTo("transferencias")} />
+          <TransferenciaForm
+            cuentasData={cuentas}
+            onTransferencia={handleTransferencia}
+            onBack={() => navigateTo("transferencias")}
+          />
         );
       case "editarTransferencia":
         return (
           <TransferenciaForm
             transferenciaId={editId}
+            cuentasData={cuentas}
+            onTransferencia={handleTransferencia}
             onBack={() => navigateTo("transferencias")}
           />
         );
-
       case "usuarios":
         return (
           <ListaUsuarios
@@ -71,7 +129,6 @@ function App() {
             onBack={() => navigateTo("usuarios")}
           />
         );
-
       default:
         return <Dashboard />;
     }
@@ -79,7 +136,6 @@ function App() {
 
   return (
     <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
       <div className="w-64 bg-white shadow-md">
         <div className="p-4 border-b">
           <h1 className="text-xl font-bold text-gray-800">
@@ -144,7 +200,6 @@ function App() {
         </nav>
       </div>
 
-      {/* Contenido principal */}
       <div className="flex-1 overflow-auto">{renderContent()}</div>
     </div>
   );

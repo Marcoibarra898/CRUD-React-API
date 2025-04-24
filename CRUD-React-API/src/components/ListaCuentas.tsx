@@ -5,15 +5,38 @@ import { Cuenta } from "../types";
 interface ListaCuentasProps {
   onAdd: () => void;
   onEdit: (id: number) => void;
+  // Add a refresh trigger prop that can be updated after transfers
+  refreshTrigger?: number;
+  // Optional prop to directly pass accounts data from parent
+  cuentasData?: Cuenta[];
 }
 
-export default function ListaCuentas({ onAdd, onEdit }: ListaCuentasProps) {
+export default function ListaCuentas({
+  onAdd,
+  onEdit,
+  refreshTrigger = 0,
+  cuentasData,
+}: ListaCuentasProps) {
   const [cuentas, setCuentas] = useState<Cuenta[]>([]);
   const [busqueda, setBusqueda] = useState("");
   const [cargando, setCargando] = useState(true);
 
+  // Modified useEffect to react to refreshTrigger changes or external cuentasData
   useEffect(() => {
+    // If accounts data is provided directly, use it
+    if (cuentasData) {
+      setCuentas(cuentasData);
+      setCargando(false);
+      return;
+    }
+
+    // Otherwise load mock data (in a real app, this would be an API call)
+    setCargando(true);
+
+    // Simulating API call with setTimeout
     setTimeout(() => {
+      // In a real application, this would be replaced with an actual API call
+      // like: fetch('/api/cuentas').then(res => res.json()).then(data => setCuentas(data))
       setCuentas([
         {
           id: 1,
@@ -45,7 +68,7 @@ export default function ListaCuentas({ onAdd, onEdit }: ListaCuentasProps) {
       ]);
       setCargando(false);
     }, 1000);
-  }, []);
+  }, [refreshTrigger, cuentasData]); // Dependency on refreshTrigger and cuentasData
 
   const cuentasFiltradas = cuentas.filter(
     (cuenta) =>
@@ -202,6 +225,6 @@ export default function ListaCuentas({ onAdd, onEdit }: ListaCuentasProps) {
           </div>
         )}
       </div>
-    </div> // <- cierre final del return
+    </div>
   );
 }
