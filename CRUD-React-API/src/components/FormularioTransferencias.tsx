@@ -64,17 +64,37 @@ export default function TransferenciaForm({
 
   useEffect(() => {
     if (transferencia.cuentaOrigenId && cuentas.length > 0) {
-      const cuenta = cuentas.find(c => c.id === transferencia.cuentaOrigenId);
-  
-      if (cuenta) {
+      // Convertimos ambos a números para asegurar que la comparación sea correcta
+      const cuentaOrigenIdNum = Number(transferencia.cuentaOrigenId);
+      
+      console.log("Buscando cuenta con ID:", cuentaOrigenIdNum);
+      console.log("Cuentas disponibles:", cuentas);
+      
+      const cuentaOrigen = cuentas.find(c => Number(c.id) === cuentaOrigenIdNum);
+      
+      console.log("Cuenta origen encontrada:", cuentaOrigen);
+      
+      if (cuentaOrigen) {
+        console.log("Tipo de saldo:", typeof cuentaOrigen.saldo);
+        console.log("Valor de saldo:", cuentaOrigen.saldo);
         
-        const saldoNumerico = parseFloat(cuenta.saldo.toString());
-  
-        console.log("Saldo numérico parseado:", saldoNumerico);
-  
+        // Asegurarnos de que saldo sea un número
+        const saldoNumerico = typeof cuentaOrigen.saldo === 'number' 
+          ? cuentaOrigen.saldo 
+          : parseFloat(String(cuentaOrigen.saldo).replace(/[^\d.-]/g, ''));
+        
+        console.log("Saldo numérico calculado:", saldoNumerico);
         
         setSaldoDisponible(!isNaN(saldoNumerico) ? saldoNumerico : 0);
+      } else {
+        console.log("No se encontró la cuenta con ID:", cuentaOrigenIdNum);
+        setSaldoDisponible(0);
       }
+    } else {
+      console.log("No hay cuenta origen seleccionada o no hay cuentas cargadas");
+      console.log("ID de cuenta origen:", transferencia.cuentaOrigenId);
+      console.log("Número de cuentas disponibles:", cuentas.length);
+      setSaldoDisponible(0);
     }
   }, [transferencia.cuentaOrigenId, cuentas]);
 
@@ -156,20 +176,31 @@ export default function TransferenciaForm({
   ) => {
     const { name, value, type } = e.target;
 
-    // Manejo especial para campos numéricos
-    if (type === "number") {
-      setTransferencia({ ...transferencia, [name]: parseFloat(value) || 0 });
+    // Para campos numéricos
+  if (type === "number") {
+    setTransferencia({ ...transferencia, [name]: parseFloat(value) || 0 });
+  }
+  // Para selectores de cuentas, asegurarse que sea número
+  else if (name === "cuentaOrigenId" || name === "cuentaDestinoId") {
+    const numValue = value === "" ? 0 : Number(value);
+    setTransferencia({ ...transferencia, [name]: numValue });
+    
+    // Debugging
+    if (name === "cuentaOrigenId") {
+      console.log("Valor seleccionado de cuenta origen:", value);
+      console.log("Convertido a número:", numValue);
     }
-    // Manejo para los demás campos
-    else {
-      setTransferencia({ ...transferencia, [name]: value });
-    }
+  }
+  // Para otros campos
+  else {
+    setTransferencia({ ...transferencia, [name]: value });
+  }
 
-    // Limpiar error al cambiar el valor
-    if (errores[name]) {
-      setErrores({ ...errores, [name]: "" });
-    }
-  };
+  // Limpiar error al cambiar el valor
+  if (errores[name]) {
+    setErrores({ ...errores, [name]: "" });
+  }
+};
 
   if (cargando) {
     return (
@@ -214,8 +245,11 @@ export default function TransferenciaForm({
                   .filter((cuenta) => cuenta.activa)
                   .map((cuenta) => (
                     <option key={cuenta.id} value={cuenta.id}>
-                      {cuenta.numeroCuenta} - {cuenta.banco} (
-                        {cuenta.tipoCuenta} - Saldo: ${typeof cuenta.saldo === 'number' ? cuenta.saldo.toFixed(2) : !isNaN(parseFloat(cuenta.saldo)) ? parseFloat(cuenta.saldo).toFixed(2) : '0.00'}
+                      {cuenta.numeroCuenta} - {cuenta.banco} ({cuenta.tipoCuenta} - Saldo: $
+                      {typeof cuenta.saldo === 'number' 
+                        ? cuenta.saldo.toFixed(2) 
+                        : parseFloat(String(cuenta.saldo)).toFixed(2)}
+                      )
                     </option>
                   ))}
               </select>

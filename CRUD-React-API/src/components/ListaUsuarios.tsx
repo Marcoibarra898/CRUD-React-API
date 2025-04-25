@@ -81,12 +81,12 @@ export default function ListaUsuarios({ onAdd, onEdit }: ListaUsuariosProps) {
             <input
               type="text"
               placeholder="Buscar usuarios..."
-              className="w-full pl-10 pr-4 py-2 border rounded-lg"
+              className="w-full pl-10 pr-4 py-2 border rounded-lg text-black"
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
             />
             <Search
-              className="absolute left-3 top-2.5 text-gray-400"
+              className="absolute left-3 top-2.5 text-gray-400 "
               size={18}
             />
           </div>

@@ -158,7 +158,7 @@ export default function CuentaForm({ cuentaId, onBack }: CuentaFormProps) {
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
             <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 text-black">
                 Número de Cuenta
               </label>
               <input
@@ -166,7 +166,7 @@ export default function CuentaForm({ cuentaId, onBack }: CuentaFormProps) {
                 name="numeroCuenta"
                 value={cuenta.numeroCuenta}
                 onChange={handleChange}
-                className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border rounded-md ${
+                className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border rounded-md text-black  ${
                   errores.numeroCuenta ? "border-red-500" : "border-gray-300"
                 }`}
               />
@@ -178,14 +178,14 @@ export default function CuentaForm({ cuentaId, onBack }: CuentaFormProps) {
             </div>
 
             <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 text-black">
                 Tipo de Cuenta
               </label>
               <select
                 name="tipoCuenta"
                 value={cuenta.tipoCuenta}
                 onChange={handleChange}
-                className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border border-gray-300 rounded-md"
+                className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border border-gray-300 rounded-md text-black"
               >
                 <option value="Ahorro">Ahorro</option>
                 <option value="Corriente">Corriente</option>
@@ -195,7 +195,7 @@ export default function CuentaForm({ cuentaId, onBack }: CuentaFormProps) {
             </div>
 
             <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 text-black">
                 Banco
               </label>
               <input
@@ -203,7 +203,7 @@ export default function CuentaForm({ cuentaId, onBack }: CuentaFormProps) {
                 name="banco"
                 value={cuenta.banco}
                 onChange={handleChange}
-                className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border rounded-md ${
+                className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border rounded-md text-black ${
                   errores.banco ? "border-red-500" : "border-gray-300"
                 }`}
               />
@@ -213,7 +213,7 @@ export default function CuentaForm({ cuentaId, onBack }: CuentaFormProps) {
             </div>
 
             <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 text-black">
                 Saldo
               </label>
               <input
@@ -222,7 +222,7 @@ export default function CuentaForm({ cuentaId, onBack }: CuentaFormProps) {
                 value={cuenta.saldo}
                 onChange={handleChange}
                 step="0.01"
-                className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border rounded-md ${
+                className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border rounded-md text-black ${
                   errores.saldo ? "border-red-500" : "border-gray-300"
                 }`}
               />
@@ -232,14 +232,14 @@ export default function CuentaForm({ cuentaId, onBack }: CuentaFormProps) {
             </div>
 
             <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 text-black">
                 Usuario
               </label>
               <select
                 name="usuarioId"
                 value={cuenta.usuarioId}
                 onChange={handleChange}
-                className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border rounded-md ${
+                className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border rounded-md  text-black ${
                   errores.usuarioId ? "border-red-500" : "border-gray-300"
                 }`}
               >
@@ -255,7 +255,7 @@ export default function CuentaForm({ cuentaId, onBack }: CuentaFormProps) {
               )}
             </div>
 
-            <div className="flex items-center sm:col-span-2 md:col-span-1">
+            <div className="flex items-center sm:col-span-2 md:col-span-1 text-black">
               <input
                 type="checkbox"
                 id="activa"

@@ -22,7 +22,7 @@ function App() {
   const renderContent = () => {
     switch (currentView) {
       case "dashboard":
-        return <Dashboard />;
+        return <Dashboard onNewTransfer={() => navigateTo("nuevaTransferencia")} />;
       case "cuentas":
         return (
           <ListaCuentas
@@ -73,7 +73,7 @@ function App() {
         );
 
       default:
-        return <Dashboard />;
+        return <Dashboard onNewTransfer={() => navigateTo("nuevaTransferencia")} />;
     }
   };
 
@@ -145,7 +145,7 @@ function App() {
       </div>
 
       {/* Contenido principal */}
-      <div className="flex-1 overflow-auto">{renderContent()}</div>
+      <div className="flex-1 overflow-auto text-black">{renderContent()}</div>
     </div>
   );
 }

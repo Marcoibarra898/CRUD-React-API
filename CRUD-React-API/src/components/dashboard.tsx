@@ -20,6 +20,9 @@ import { getTransferencias } from "../api/TransferenciaAPI";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
+interface DashboardProps {
+  onNewTransfer: () => void;
+}
 
 // Helper function para agrupar transferencias por mes con tipos correctos
 const agruparTransferenciasPorMes = (transferencias: Transferencia[]) => {
@@ -37,7 +40,7 @@ const agruparTransferenciasPorMes = (transferencias: Transferencia[]) => {
   return mesesConDatos.slice(-4); // Últimos 4 meses con transferencias
 };
 
-export default function Dashboard() {
+export default function Dashboard({ onNewTransfer }: DashboardProps) {
   const [estadisticas, setEstadisticas] = useState<EstadisticasDashboard>({
     totalUsuarios: 0,
     totalCuentas: 0,
@@ -267,7 +270,9 @@ export default function Dashboard() {
           <h2 className="text-base sm:text-lg font-semibold">
             Últimas Transferencias
           </h2>
-          <button className="flex items-center text-sm sm:text-base text-blue-600 hover:text-blue-800">
+          <button 
+            onClick={onNewTransfer}
+            className="flex items-center text-sm sm:text-base text-blue-600 hover:text-blue-800">
             <Plus size={16} className="mr-1" /> Nueva Transferencia
           </button>
         </div>

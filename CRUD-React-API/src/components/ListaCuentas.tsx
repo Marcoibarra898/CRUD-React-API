@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Edit, Trash2, Plus, Search, CreditCard, Eye } from "lucide-react";
+import { Edit, Trash2, Plus, Search, CreditCard } from "lucide-react";
 import { Cuenta } from "../types";
 import { 
   getCuentas, 
@@ -83,7 +83,7 @@ export default function ListaCuentas({ onAdd, onEdit }: ListaCuentasProps) {
             <input
               type="text"
               placeholder="Buscar cuentas..."
-              className="w-full pl-10 pr-4 py-2 border rounded-lg"
+              className="w-full pl-10 pr-4 py-2 border rounded-lg text-black"
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
             />
@@ -170,9 +170,6 @@ export default function ListaCuentas({ onAdd, onEdit }: ListaCuentasProps) {
                       </td>
                       <td className="py-3 px-4 whitespace-nowrap">
                         <div className="flex space-x-2">
-                          <button className="text-indigo-600 hover:text-indigo-800">
-                            <Eye size={18} />
-                          </button>
                           <button
                             className="text-blue-600 hover:text-blue-800"
                             onClick={() =>

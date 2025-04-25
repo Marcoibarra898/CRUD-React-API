@@ -85,7 +85,7 @@ export default function ListaTransferencias({
               <input
                 type="text"
                 placeholder="Buscar transferencias..."
-                className="w-full pl-10 pr-4 py-2 border rounded-lg"
+                className="w-full pl-10 pr-4 py-2 border rounded-lg text-black"
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
               />
