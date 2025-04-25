@@ -10,7 +10,7 @@ import ListaCuentas from "./components/ListaCuentas";
 import ListaTransferencias from "./components/ListaTransferencias";
 import ListaUsuarios from "./components/ListaUsuarios";
 
-import { Cuenta } from "./types";
+import { Cuenta, Usuario } from "./types";
 
 function App() {
   const [currentView, setCurrentView] = useState("dashboard");
@@ -47,6 +47,29 @@ function App() {
     },
   ]);
 
+  // Estado global para usuarios con datos iniciales
+  const [usuarios, setUsuarios] = useState<Usuario[]>([
+    {
+      id: 1,
+      nombre: "María",
+      apellido: "Rodríguez",
+      email: "maria.rodriguez@example.com",
+      telefono: "555-1234",
+      fechaRegistro: new Date(2023, 1, 15),
+    },
+    {
+      id: 2,
+      nombre: "Carlos",
+      apellido: "Gómez",
+      email: "carlos.gomez@example.com",
+      telefono: "555-5678",
+      fechaRegistro: new Date(2023, 3, 22),
+    },
+  ]);
+
+  const [mostrarFormularioUsuario, setMostrarFormularioUsuario] =
+    useState(false);
+
   // Lógica de transferencia
   const handleTransferencia = (
     cuentaOrigenId: number,
@@ -69,6 +92,32 @@ function App() {
   const navigateTo = (view: string, id?: number) => {
     setCurrentView(view);
     setEditId(id);
+    setMostrarFormularioUsuario(
+      view === "nuevoUsuario" || view === "editarUsuario"
+    );
+  };
+
+  const handleSaveUsuario = (usuario: Usuario) => {
+    if (usuario.id) {
+      // Actualizar usuario existente
+      setUsuarios((prev) =>
+        prev.map((u) => (u.id === usuario.id ? usuario : u))
+      );
+    } else {
+      // Crear nuevo usuario con ID y fecha de registro
+      const nuevoUsuario = {
+        ...usuario,
+        id: Date.now(),
+        fechaRegistro: new Date(),
+      };
+      setUsuarios((prev) => [...prev, nuevoUsuario]);
+    }
+    setMostrarFormularioUsuario(false);
+    setCurrentView("usuarios");
+  };
+
+  const handleDeleteUsuario = (id: number) => {
+    setUsuarios(usuarios.filter((u) => u.id !== id));
   };
 
   const renderContent = () => {
@@ -114,19 +163,27 @@ function App() {
           />
         );
       case "usuarios":
-        return (
+        return mostrarFormularioUsuario ? (
+          <UsuarioForm
+            usuarioId={editId}
+            onBack={() => navigateTo("usuarios")}
+            onSave={handleSaveUsuario}
+          />
+        ) : (
           <ListaUsuarios
+            usuarios={usuarios}
             onAdd={() => navigateTo("nuevoUsuario")}
             onEdit={(id: number) => navigateTo("editarUsuario", id)}
+            onDelete={handleDeleteUsuario}
           />
         );
       case "nuevoUsuario":
-        return <UsuarioForm onBack={() => navigateTo("usuarios")} />;
       case "editarUsuario":
         return (
           <UsuarioForm
             usuarioId={editId}
             onBack={() => navigateTo("usuarios")}
+            onSave={handleSaveUsuario}
           />
         );
       default:
@@ -199,7 +256,6 @@ function App() {
           </ul>
         </nav>
       </div>
-
       <div className="flex-1 overflow-auto">{renderContent()}</div>
     </div>
   );

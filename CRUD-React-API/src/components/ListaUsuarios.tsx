@@ -1,61 +1,40 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Edit, Trash2, Plus, Search, User } from "lucide-react";
 import { Usuario } from "../types";
 
 interface ListaUsuariosProps {
+  usuarios: Usuario[];
   onAdd: () => void;
   onEdit: (id: number) => void;
+  onDelete: (id: number) => void;
 }
 
-export default function ListaUsuarios({ onAdd, onEdit }: ListaUsuariosProps) {
-  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+export default function ListaUsuarios({
+  usuarios,
+  onAdd,
+  onEdit,
+  onDelete,
+}: ListaUsuariosProps) {
   const [busqueda, setBusqueda] = useState("");
-  const [cargando, setCargando] = useState(true);
-
-  useEffect(() => {
-    // implementacion de la api pendiente
-    setTimeout(() => {
-      setUsuarios([
-        {
-          id: 1,
-          nombre: "Juan",
-          apellido: "Pérez",
-          email: "juan.perez@example.com",
-          telefono: "123456789",
-          fechaRegistro: new Date("2025-01-15"),
-        },
-        {
-          id: 2,
-          nombre: "María",
-          apellido: "González",
-          email: "maria.gonzalez@example.com",
-          telefono: "987654321",
-          fechaRegistro: new Date("2025-02-20"),
-        },
-        {
-          id: 3,
-          nombre: "Carlos",
-          apellido: "Rodríguez",
-          email: "carlos.rodriguez@example.com",
-          telefono: "456789123",
-          fechaRegistro: new Date("2025-03-10"),
-        },
-      ]);
-      setCargando(false);
-    }, 1000);
-  }, []);
+  const [cargando, setCargando] = useState(false);
 
   const usuariosFiltrados = usuarios.filter(
     (usuario) =>
       usuario.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
       usuario.apellido.toLowerCase().includes(busqueda.toLowerCase()) ||
-      usuario.email.toLowerCase().includes(busqueda.toLowerCase())
+      (usuario.email &&
+        usuario.email.toLowerCase().includes(busqueda.toLowerCase()))
   );
 
   const eliminarUsuario = (id: number) => {
-    // implementacion de eliminar usuario pendiente al llamar la api
     if (window.confirm("¿Estás seguro de que deseas eliminar este usuario?")) {
-      setUsuarios(usuarios.filter((u) => u.id !== id));
+      // Simular un estado de carga antes de eliminar
+      setCargando(true);
+      // Simulamos una pequeña demora como si fuera una operación asíncrona
+      setTimeout(() => {
+        onDelete(id);
+        setCargando(false);
+      }, 300);
     }
   };
 
@@ -66,6 +45,7 @@ export default function ListaUsuarios({ onAdd, onEdit }: ListaUsuariosProps) {
         <button
           onClick={onAdd}
           className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded flex items-center"
+          aria-label="Añadir nuevo usuario"
         >
           <Plus size={16} className="mr-2" />
           Nuevo Usuario
@@ -75,7 +55,11 @@ export default function ListaUsuarios({ onAdd, onEdit }: ListaUsuariosProps) {
       <div className="bg-white rounded-lg shadow mb-6">
         <div className="p-4">
           <div className="relative">
+            <label htmlFor="buscar-usuario" className="sr-only">
+              Buscar usuarios
+            </label>
             <input
+              id="buscar-usuario"
               type="text"
               placeholder="Buscar usuarios..."
               className="w-full pl-10 pr-4 py-2 border rounded-lg"
@@ -85,12 +69,16 @@ export default function ListaUsuarios({ onAdd, onEdit }: ListaUsuariosProps) {
             <Search
               className="absolute left-3 top-2.5 text-gray-400"
               size={18}
+              aria-hidden="true"
             />
           </div>
         </div>
 
         {cargando ? (
-          <div className="flex justify-center items-center p-8">
+          <div
+            className="flex justify-center items-center p-8"
+            aria-label="Cargando usuarios"
+          >
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
         ) : (
@@ -119,8 +107,6 @@ export default function ListaUsuarios({ onAdd, onEdit }: ListaUsuariosProps) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 text-gray-800">
-                {" "}
-                {/* <-- Cambio aquí */}
                 {usuariosFiltrados.length > 0 ? (
                   usuariosFiltrados.map((usuario) => (
                     <tr key={usuario.id} className="hover:bg-gray-50">
@@ -130,7 +116,11 @@ export default function ListaUsuarios({ onAdd, onEdit }: ListaUsuariosProps) {
                       <td className="py-3 px-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-8 w-8 bg-gray-100 rounded-full flex items-center justify-center">
-                            <User size={14} className="text-gray-500" />
+                            <User
+                              size={14}
+                              className="text-gray-500"
+                              aria-hidden="true"
+                            />
                           </div>
                           <div className="ml-3">
                             <div className="text-sm font-medium">
@@ -146,21 +136,25 @@ export default function ListaUsuarios({ onAdd, onEdit }: ListaUsuariosProps) {
                         {usuario.telefono}
                       </td>
                       <td className="py-3 px-4 whitespace-nowrap">
-                        {usuario.fechaRegistro?.toLocaleDateString()}
+                        {usuario.fechaRegistro
+                          ? usuario.fechaRegistro.toLocaleDateString()
+                          : "-"}
                       </td>
                       <td className="py-3 px-4 whitespace-nowrap">
                         <div className="flex space-x-2">
                           <button
                             className="text-blue-600 hover:text-blue-800"
-                            onClick={() =>
-                              usuario.id !== undefined && onEdit(usuario.id)
-                            }
+                            onClick={() => usuario.id && onEdit(usuario.id)}
+                            aria-label={`Editar usuario ${usuario.nombre} ${usuario.apellido}`}
                           >
                             <Edit size={18} />
                           </button>
                           <button
                             className="text-red-600 hover:text-red-800"
-                            onClick={() => eliminarUsuario(usuario.id!)}
+                            onClick={() =>
+                              usuario.id && eliminarUsuario(usuario.id)
+                            }
+                            aria-label={`Eliminar usuario ${usuario.nombre} ${usuario.apellido}`}
                           >
                             <Trash2 size={18} />
                           </button>
