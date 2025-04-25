@@ -5,7 +5,7 @@ import { Usuario } from "../types";
 interface UsuarioFormProps {
   usuarioId?: number;
   onBack: () => void;
-  onSave: (usuario: Usuario) => void; // Nueva prop para comunicar el usuario guardado
+  onSave: (usuario: Usuario) => void;
 }
 
 export default function UsuarioForm({
@@ -29,6 +29,7 @@ export default function UsuarioForm({
   useEffect(() => {
     if (esEdicion) {
       setCargando(true);
+      // Simulamos obtener datos del usuario por ID
       setTimeout(() => {
         setUsuario({
           id: usuarioId,
@@ -36,6 +37,7 @@ export default function UsuarioForm({
           apellido: "Pérez",
           email: "juan.perez@example.com",
           telefono: "123456789",
+          fechaRegistro: new Date(2023, 5, 15), // Aseguramos que haya una fecha
         });
         setCargando(false);
       }, 1000);
@@ -79,10 +81,19 @@ export default function UsuarioForm({
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // Llamar a la función onSave para comunicar el usuario guardado al componente padre
-      onSave({ ...usuario });
+      // Si es nuevo usuario, asegurar que no haya id para que App.tsx lo asigne
+      // y agregue la fecha de registro
+      const usuarioActualizado = esEdicion
+        ? { ...usuario }
+        : {
+            nombre: usuario.nombre,
+            apellido: usuario.apellido,
+            email: usuario.email,
+            telefono: usuario.telefono,
+          };
 
-      // No es necesario limpiar el formulario aquí, ya que la navegación será manejada por el componente padre
+      // Llamar a la función onSave para comunicar el usuario guardado
+      onSave(usuarioActualizado);
     } catch (error) {
       console.error("Error al guardar usuario:", error);
       alert("Ocurrió un error al guardar el usuario");
@@ -114,6 +125,7 @@ export default function UsuarioForm({
         <button
           onClick={onBack}
           className="mr-4 p-2 rounded-full hover:bg-gray-100"
+          aria-label="Volver"
         >
           <ArrowLeft size={20} className="text-gray-800" />
         </button>
@@ -126,11 +138,15 @@ export default function UsuarioForm({
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
-              <label className="block text-sm font-medium text-gray-800 mb-1">
+              <label
+                htmlFor="nombre"
+                className="block text-sm font-medium text-gray-800 mb-1"
+              >
                 Nombre
               </label>
               <input
                 type="text"
+                id="nombre"
                 name="nombre"
                 value={usuario.nombre}
                 onChange={handleChange}
@@ -144,11 +160,15 @@ export default function UsuarioForm({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-800 mb-1">
+              <label
+                htmlFor="apellido"
+                className="block text-sm font-medium text-gray-800 mb-1"
+              >
                 Apellido
               </label>
               <input
                 type="text"
+                id="apellido"
                 name="apellido"
                 value={usuario.apellido}
                 onChange={handleChange}
@@ -162,11 +182,15 @@ export default function UsuarioForm({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-800 mb-1">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-800 mb-1"
+              >
                 Email
               </label>
               <input
                 type="email"
+                id="email"
                 name="email"
                 value={usuario.email}
                 onChange={handleChange}
@@ -180,11 +204,15 @@ export default function UsuarioForm({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-800 mb-1">
+              <label
+                htmlFor="telefono"
+                className="block text-sm font-medium text-gray-800 mb-1"
+              >
                 Teléfono
               </label>
               <input
                 type="text"
+                id="telefono"
                 name="telefono"
                 value={usuario.telefono}
                 onChange={handleChange}
